@@ -11,7 +11,8 @@
     "studio": "npx prisma studio",
     "seed": "node prisma/seed.js",
     "seed:old": "node src/utils/seed.js",
-    "build": "npx prisma generate"
+    "build": "npx prisma generate",
+    "postinstall": "npx prisma generate"
   },
   "keywords": [
     "pos",
@@ -35,6 +36,7 @@
     "jsonwebtoken": "^9.0.2",
     "morgan": "^1.10.0",
     "multer": "^1.4.5-lts.1",
+    "pg": "^8.23.1",
     "prisma": "^5.7.0",
     "react-to-print": "^3.3.0",
     "redis": "^4.6.11",

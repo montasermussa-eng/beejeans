@@ -12,6 +12,10 @@ const rateLimiter = rateLimit({
   },
   standardHeaders: true,
   legacyHeaders: false,
+  // Fix trust proxy warning for Railway
+  validate: {
+    trustProxy: false, // Disable trust proxy validation
+  },
 });
 
 /**
@@ -23,7 +27,11 @@ const authRateLimiter = rateLimit({
   message: {
     success: false,
     message: 'Too many login attempts, please try again later'
-  }
+  },
+  // Fix trust proxy warning for Railway
+  validate: {
+    trustProxy: false,
+  },
 });
 
 module.exports = {

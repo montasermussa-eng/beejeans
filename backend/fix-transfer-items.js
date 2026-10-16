@@ -1,74 +1,44 @@
-const { PrismaClient } = require('@prisma/client');
-const prisma = new PrismaClient();
+const { Client } = require('pg');
+require('dotenv').config();
 
 async function fixTransferItems() {
+  const client = new Client({
+    connectionString: process.env.DATABASE_URL,
+    ssl: { rejectUnauthorized: false }
+  });
+
   try {
-    console.log('🔧 Fixing transfer items...\n');
+    await client.connect();
+    console.log('✅ Connected to database\n');
+
+    console.log('➕ Adding transferPrice column to transfer_items...');
     
-    const transferId = 'a86406ff-2434-4951-8bef-731e657a32c0';
+    await client.query(`
+      ALTER TABLE transfer_items 
+      ADD COLUMN IF NOT EXISTS "transferPrice" DOUBLE PRECISION DEFAULT 0;
+    `);
     
-    // Get the transfer
-    const transfer = await prisma.transfer.findUnique({
-      where: { id: transferId },
-      include: {
-        fromBranch: true,
-        toBranch: true
-      }
-    });
-    
-    if (!transfer) {
-      console.log('❌ Transfer not found!');
-      return;
+    console.log('✅ transferPrice column added!\n');
+
+    // Verify
+    const verify = await client.query(`
+      SELECT column_name, data_type, column_default
+      FROM information_schema.columns 
+      WHERE table_name = 'transfer_items' AND column_name = 'transferPrice';
+    `);
+
+    if (verify.rows.length > 0) {
+      console.log('✅ Verification successful:');
+      console.log(verify.rows[0]);
     }
-    
-    console.log(`📦 Transfer: ${transfer.fromBranch.name} → ${transfer.toBranch.name}`);
-    console.log(`Status: ${transfer.status}`);
-    console.log(`Date: ${transfer.createdAt}\n`);
-    
-    // Check inventory in the target branch
-    console.log('📊 Checking inventory in امبابه الصغير...\n');
-    
-    const inventory = await prisma.inventory.findMany({
-      where: {
-        branchId: transfer.toBranchId
-      },
-      include: {
-        product: {
-          select: {
-            id: true,
-            name: true,
-            barcode: true,
-            costPrice: true,
-            sellingPrice: true
-          }
-        }
-      }
-    });
-    
-    console.log(`Found ${inventory.length} products in inventory:\n`);
-    
-    inventory.forEach((item, index) => {
-      console.log(`${index + 1}. ${item.product.name}`);
-      console.log(`   Barcode: ${item.product.barcode}`);
-      console.log(`   Quantity: ${item.quantity}`);
-      console.log(`   Cost: ${item.product.costPrice}`);
-      console.log(`   Selling: ${item.product.sellingPrice}`);
-      console.log('');
-    });
-    
-    console.log('\n════════════════════════════════════════');
-    console.log('⚠️  MANUAL ACTION REQUIRED');
-    console.log('════════════════════════════════════════\n');
-    console.log('Please tell me which products were in the transfer and their quantities.');
-    console.log('For example:');
-    console.log('  Product ID: xxx, Quantity: 10');
-    console.log('  Product ID: yyy, Quantity: 5');
-    console.log('\nOr the easier way: Delete this transfer and create a new one! 🚀');
-    
+
+    await client.end();
+    console.log('\n🎉 Done!');
+    process.exit(0);
   } catch (error) {
-    console.error('❌ Error:', error);
-  } finally {
-    await prisma.$disconnect();
+    console.error('❌ Error:', error.message);
+    await client.end();
+    process.exit(1);
   }
 }
 

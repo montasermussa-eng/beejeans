@@ -1,3 +1,4 @@
+// Updated for Railway deployment
 generator client {
   provider = "prisma-client-js"
 }

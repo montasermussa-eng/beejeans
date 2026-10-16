@@ -68,8 +68,11 @@ async function verifyAllTables() {
       { table: 'office_returns', column: 'refundMethod' },
       { table: 'office_returns', column: 'deductedFromPaid' },
       { table: 'office_returns', column: 'deductedFromDebt' },
+      { table: 'office_returns', column: 'returnReason' },
       { table: 'customer_store_returns', column: 'totalCost' },
       { table: 'customer_store_returns', column: 'totalProfit' },
+      { table: 'manufacturing_orders', column: 'totalFabricCost' },
+      { table: 'manufacturing_orders', column: 'grandTotalCost' },
     ];
 
     for (const { table, column } of criticalColumns) {

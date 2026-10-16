@@ -5,14 +5,15 @@
   "main": "src/server.js",
   "scripts": {
     "dev": "nodemon src/server.js",
-    "start": "node src/server.js",
+    "start": "npx prisma generate && node src/server.js",
     "migrate": "npx prisma migrate dev",
     "migrate:deploy": "npx prisma migrate deploy",
     "studio": "npx prisma studio",
     "seed": "node prisma/seed.js",
     "seed:old": "node src/utils/seed.js",
     "build": "npx prisma generate",
-    "postinstall": "npx prisma generate"
+    "postinstall": "npx prisma generate",
+    "verify": "node verify-prisma.js"
   },
   "keywords": [
     "pos",

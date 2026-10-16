@@ -1,143 +1,184 @@
+require('dotenv').config();
 const { PrismaClient } = require('@prisma/client');
-const prisma = new PrismaClient();
 const fs = require('fs');
-const path = require('path');
+
+// Old database
+const oldPrisma = new PrismaClient({
+  datasources: {
+    db: {
+      url: "postgresql://postgres:MnFZUReMfbaaAqRzMLyLbrdnxDTabUux@altaria.proxy.rlwy.net:15519/railway"
+    }
+  }
+});
 
 async function exportDatabase() {
-  console.log('📦 بدء تصدير قاعدة البيانات...\n');
-
   try {
-    // Export all data
-    const data = {
-      timestamp: new Date().toISOString(),
-      version: '1.0.0',
-      
-      // Core data
-      categories: await prisma.category.findMany(),
-      branches: await prisma.branch.findMany(),
-      users: await prisma.user.findMany(),
-      
-      // Products and Inventory
-      products: await prisma.product.findMany(),
-      inventory: await prisma.inventory.findMany(),
-      
-      // Sales
-      sales: await prisma.sale.findMany({
-        include: {
-          items: true
-        }
-      }),
-      
-      // Customers
-      customers: await prisma.customer.findMany(),
-      customerPayments: await prisma.customerPayment.findMany(),
-      
-      // Suppliers
-      suppliers: await prisma.supplier.findMany(),
-      supplierPayments: await prisma.supplierPayment.findMany(),
-      
-      // Production System
-      fabricTypes: await prisma.fabricType.findMany(),
-      fabricPurchases: await prisma.fabricPurchase.findMany(),
-      manufacturingOrders: await prisma.manufacturingOrder.findMany(),
-      washingOrders: await prisma.washingOrder.findMany(),
-      
-      // Transfers
-      transfers: await prisma.transfer.findMany({
-        include: {
-          items: true
-        }
-      }),
-      
-      // Expenses
-      expenses: await prisma.expense.findMany(),
-      
-      // Returns
-      returns: await prisma.return.findMany({
-        include: {
-          items: true
-        }
-      }),
-      
-      // Vault
-      vaultTransactions: await prisma.vaultTransaction.findMany(),
-      
-      // Shifts
-      shifts: await prisma.shift.findMany(),
-      
-      // Partners
-      partners: await prisma.partner.findMany(),
-      partnerTransactions: await prisma.partnerTransaction.findMany(),
-      
-      // Additional tables
-      productSerials: await prisma.productSerial.findMany(),
-      fabricStock: await prisma.fabricStock.findMany(),
-      moneyTransfers: await prisma.moneyTransfer.findMany(),
-      activityLogs: await prisma.activityLog.findMany()
-    };
+    console.log('🚀 جاري تصدير قاعدة البيانات...\n');
 
-    // Calculate statistics
-    const stats = {
-      categories: data.categories.length,
-      branches: data.branches.length,
-      users: data.users.length,
-      products: data.products.length,
-      inventory: data.inventory.length,
-      sales: data.sales.length,
-      saleItems: data.sales.reduce((sum, sale) => sum + sale.items.length, 0),
-      customers: data.customers.length,
-      customerPayments: data.customerPayments.length,
-      suppliers: data.suppliers.length,
-      supplierPayments: data.supplierPayments.length,
-      fabricTypes: data.fabricTypes.length,
-      fabricPurchases: data.fabricPurchases.length,
-      fabricStock: data.fabricStock.length,
-      manufacturingOrders: data.manufacturingOrders.length,
-      washingOrders: data.washingOrders.length,
-      transfers: data.transfers.length,
-      transferItems: data.transfers.reduce((sum, t) => sum + t.items.length, 0),
-      expenses: data.expenses.length,
-      returns: data.returns.length,
-      returnItems: data.returns.reduce((sum, r) => sum + r.items.length, 0),
-      vaultTransactions: data.vaultTransactions.length,
-      shifts: data.shifts.length,
-      partners: data.partners.length,
-      partnerTransactions: data.partnerTransactions.length,
-      productSerials: data.productSerials.length,
-      moneyTransfers: data.moneyTransfers.length,
-      activityLogs: data.activityLogs.length
-    };
+    const data = {};
 
-    console.log('📊 إحصائيات البيانات:');
-    console.log(JSON.stringify(stats, null, 2));
-    console.log();
+    // Export all tables in order
+    console.log('📋 Categories...');
+    data.categories = await oldPrisma.category.findMany();
+    console.log(`   ✅ ${data.categories.length} سجل`);
 
-    // Save to file
-    const backupDir = path.join(__dirname, 'backup');
-    if (!fs.existsSync(backupDir)) {
-      fs.mkdirSync(backupDir);
+    console.log('📋 Users...');
+    data.users = await oldPrisma.user.findMany();
+    console.log(`   ✅ ${data.users.length} سجل`);
+
+    console.log('📋 Branches...');
+    data.branches = await oldPrisma.branch.findMany();
+    console.log(`   ✅ ${data.branches.length} سجل`);
+
+    console.log('📋 Vaults...');
+    data.vaults = await oldPrisma.vault.findMany();
+    console.log(`   ✅ ${data.vaults.length} سجل`);
+
+    console.log('📋 Products...');
+    data.products = await oldPrisma.product.findMany();
+    console.log(`   ✅ ${data.products.length} سجل`);
+
+    console.log('📋 Customers...');
+    data.customers = await oldPrisma.customer.findMany();
+    console.log(`   ✅ ${data.customers.length} سجل`);
+
+    console.log('📋 Suppliers...');
+    data.suppliers = await oldPrisma.supplier.findMany();
+    console.log(`   ✅ ${data.suppliers.length} سجل`);
+
+    console.log('📋 Partners...');
+    data.partners = await oldPrisma.partner.findMany();
+    console.log(`   ✅ ${data.partners.length} سجل`);
+
+    console.log('📋 Fabric Types...');
+    data.fabricTypes = await oldPrisma.fabricType.findMany();
+    console.log(`   ✅ ${data.fabricTypes.length} سجل`);
+
+    console.log('📋 Inventory...');
+    data.inventory = await oldPrisma.inventory.findMany();
+    console.log(`   ✅ ${data.inventory.length} سجل`);
+
+    console.log('📋 Purchases...');
+    data.purchases = await oldPrisma.purchase.findMany();
+    console.log(`   ✅ ${data.purchases.length} سجل`);
+
+    console.log('📋 Purchase Items...');
+    data.purchaseItems = await oldPrisma.purchaseItem.findMany();
+    console.log(`   ✅ ${data.purchaseItems.length} سجل`);
+
+    console.log('📋 Fabric Purchases...');
+    data.fabricPurchases = await oldPrisma.fabricPurchase.findMany();
+    console.log(`   ✅ ${data.fabricPurchases.length} سجل`);
+
+    console.log('📋 Manufacturing Orders...');
+    data.manufacturingOrders = await oldPrisma.manufacturingOrder.findMany();
+    console.log(`   ✅ ${data.manufacturingOrders.length} سجل`);
+
+    console.log('📋 Manufacturing Order Fabrics...');
+    data.manufacturingOrderFabrics = await oldPrisma.manufacturingOrderFabric.findMany();
+    console.log(`   ✅ ${data.manufacturingOrderFabrics.length} سجل`);
+
+    console.log('📋 Washing Orders...');
+    data.washingOrders = await oldPrisma.washingOrder.findMany();
+    console.log(`   ✅ ${data.washingOrders.length} سجل`);
+
+    console.log('📋 Sales...');
+    data.sales = await oldPrisma.sale.findMany();
+    console.log(`   ✅ ${data.sales.length} سجل`);
+
+    console.log('📋 Sale Items...');
+    data.saleItems = await oldPrisma.saleItem.findMany();
+    console.log(`   ✅ ${data.saleItems.length} سجل`);
+
+    console.log('📋 Returns...');
+    data.returns = await oldPrisma.return.findMany();
+    console.log(`   ✅ ${data.returns.length} سجل`);
+
+    console.log('📋 Return Items...');
+    data.returnItems = await oldPrisma.returnItem.findMany();
+    console.log(`   ✅ ${data.returnItems.length} سجل`);
+
+    console.log('📋 Expenses...');
+    data.expenses = await oldPrisma.expense.findMany();
+    console.log(`   ✅ ${data.expenses.length} سجل`);
+
+    console.log('📋 Transfers...');
+    data.transfers = await oldPrisma.transfer.findMany();
+    console.log(`   ✅ ${data.transfers.length} سجل`);
+
+    console.log('📋 Transfer Items...');
+    data.transferItems = await oldPrisma.transferItem.findMany();
+    console.log(`   ✅ ${data.transferItems.length} سجل`);
+
+    console.log('📋 Customer Payments...');
+    data.customerPayments = await oldPrisma.customerPayment.findMany();
+    console.log(`   ✅ ${data.customerPayments.length} سجل`);
+
+    console.log('📋 Supplier Payments...');
+    data.supplierPayments = await oldPrisma.supplierPayment.findMany();
+    console.log(`   ✅ ${data.supplierPayments.length} سجل`);
+
+    console.log('📋 Partner Withdrawals...');
+    try {
+      data.partnerWithdrawals = await oldPrisma.partnerWithdrawal.findMany();
+      console.log(`   ✅ ${data.partnerWithdrawals.length} سجل`);
+    } catch (err) {
+      data.partnerWithdrawals = [];
+      console.log(`   ⏭️  غير موجود`);
     }
 
-    const filename = `database-backup-${new Date().toISOString().replace(/:/g, '-').split('.')[0]}.json`;
-    const filepath = path.join(backupDir, filename);
-    
-    fs.writeFileSync(filepath, JSON.stringify(data, null, 2));
-    
-    console.log(`✅ تم تصدير البيانات بنجاح إلى:`);
-    console.log(`   ${filepath}`);
-    console.log();
-    console.log(`📝 حجم الملف: ${(fs.statSync(filepath).size / 1024 / 1024).toFixed(2)} MB`);
-    console.log();
-    console.log('🚀 الخطوات التالية:');
-    console.log('   1. استخدم هذا الملف لاستعادة البيانات على Railway');
-    console.log('   2. شغل import-database.js على السيرفر الجديد');
-    console.log();
+    console.log('📋 Office Customers...');
+    data.officeCustomers = await oldPrisma.officeCustomer.findMany();
+    console.log(`   ✅ ${data.officeCustomers.length} سجل`);
+
+    console.log('📋 Office Invoices...');
+    data.officeInvoices = await oldPrisma.officeInvoice.findMany();
+    console.log(`   ✅ ${data.officeInvoices.length} سجل`);
+
+    console.log('📋 Office Invoice Items...');
+    data.officeInvoiceItems = await oldPrisma.officeInvoiceItem.findMany();
+    console.log(`   ✅ ${data.officeInvoiceItems.length} سجل`);
+
+    console.log('📋 Office Returns...');
+    data.officeReturns = await oldPrisma.officeReturn.findMany();
+    console.log(`   ✅ ${data.officeReturns.length} سجل`);
+
+    console.log('📋 Office Return Items...');
+    data.officeReturnItems = await oldPrisma.officeReturnItem.findMany();
+    console.log(`   ✅ ${data.officeReturnItems.length} سجل`);
+
+    console.log('📋 Wholesale Employees...');
+    data.wholesaleEmployees = await oldPrisma.wholesaleEmployee.findMany();
+    console.log(`   ✅ ${data.wholesaleEmployees.length} سجل`);
+
+    console.log('📋 Audits...');
+    data.audits = await oldPrisma.audit.findMany();
+    console.log(`   ✅ ${data.audits.length} سجل`);
+
+    console.log('📋 Audit Items...');
+    data.auditItems = await oldPrisma.auditItem.findMany();
+    console.log(`   ✅ ${data.auditItems.length} سجل`);
+
+    // Save to file
+    console.log('\n💾 جاري حفظ البيانات في ملف...');
+    fs.writeFileSync('database-export.json', JSON.stringify(data, null, 2));
+    console.log('✅ تم حفظ البيانات في database-export.json\n');
+
+    console.log('📊 إجمالي السجلات المُصدَّرة:');
+    let total = 0;
+    for (const [key, value] of Object.entries(data)) {
+      if (value.length > 0) {
+        console.log(`   ${key}: ${value.length}`);
+        total += value.length;
+      }
+    }
+    console.log(`\n✅ إجمالي: ${total} سجل`);
 
   } catch (error) {
-    console.error('❌ حدث خطأ أثناء التصدير:', error);
+    console.error('❌ خطأ:', error);
   } finally {
-    await prisma.$disconnect();
+    await oldPrisma.$disconnect();
   }
 }
 
-exportDatabase();
+exportDatabase().catch(console.error);
